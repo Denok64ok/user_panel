@@ -168,8 +168,6 @@ class _InspectZonePageState extends State<InspectZonePage>
       _showMessage('Неверно указано время бронирования');
     } else if (message.toLowerCase().contains('place not found')) {
       _showMessage('Выбранное место больше недоступно');
-    } else {
-      _showMessage('Не удалось создать бронирование');
     }
   }
 

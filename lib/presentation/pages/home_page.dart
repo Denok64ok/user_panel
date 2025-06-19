@@ -30,6 +30,8 @@ class _HomePageState extends State<HomePage> implements MapView {
   bool _isExpanded = false;
   bool _isLoading = false;
   String _loadingMessage = '';
+  List<ParkingZoneDetailed> _detailedZones = [];
+  bool _colorByFreePlaces = false;
 
   @override
   void initState() {
@@ -310,18 +312,34 @@ class _HomePageState extends State<HomePage> implements MapView {
               ),
               PolygonLayer(
                 polygons:
-                    _zones.map((zone) {
-                      return Polygon(
-                        points:
-                            zone.location
-                                .map((coord) => LatLng(coord[0], coord[1]))
-                                .toList(),
-                        color: _getZoneColor(zone.zoneTypeId),
-                        borderColor: Colors.black,
-                        borderStrokeWidth: 2.0,
-                        isFilled: true,
-                      );
-                    }).toList(),
+                    _colorByFreePlaces
+                        ? _detailedZones.map((zone) {
+                          return Polygon(
+                            points:
+                                zone.location
+                                    .map((coord) => LatLng(coord[0], coord[1]))
+                                    .toList(),
+                            color:
+                                zone.freePlaces == 0
+                                    ? Colors.red.withOpacity(0.6)
+                                    : Colors.green.withOpacity(0.6),
+                            borderColor: Colors.black,
+                            borderStrokeWidth: 2.0,
+                            isFilled: true,
+                          );
+                        }).toList()
+                        : _zones.map((zone) {
+                          return Polygon(
+                            points:
+                                zone.location
+                                    .map((coord) => LatLng(coord[0], coord[1]))
+                                    .toList(),
+                            color: _getZoneColor(zone.zoneTypeId),
+                            borderColor: Colors.black,
+                            borderStrokeWidth: 2.0,
+                            isFilled: true,
+                          );
+                        }).toList(),
               ),
             ],
           ),
@@ -340,6 +358,7 @@ class _HomePageState extends State<HomePage> implements MapView {
                         onFindNearestZone: (userLocation) {
                           _presenter.findNearestZone(userLocation);
                         },
+                        onColorByFreePlacesMode: _toggleColorByFreePlacesMode,
                       ),
                     ),
                   ],
@@ -394,5 +413,36 @@ class _HomePageState extends State<HomePage> implements MapView {
       }
     }
     return intersectCount % 2 == 1;
+  }
+
+  void _toggleColorByFreePlacesMode() async {
+    if (_colorByFreePlaces) {
+      setState(() {
+        _colorByFreePlaces = false;
+      });
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = 'Загрузка данных о свободных местах...';
+    });
+    try {
+      final api = GetIt.I.get<ApiService>();
+      final List<ParkingZoneDetailed> detailed = [];
+      for (final zone in _zones) {
+        final detail = await api.getZoneDetailed(zone.id);
+        detailed.add(detail);
+      }
+      setState(() {
+        _detailedZones = detailed;
+        _colorByFreePlaces = true;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showError('Не удалось загрузить данные о свободных местах');
+    }
   }
 }

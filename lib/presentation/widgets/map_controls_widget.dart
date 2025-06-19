@@ -6,11 +6,13 @@ import 'package:geolocator/geolocator.dart';
 class MapControlsWidget extends StatefulWidget {
   final MapController mapController;
   final Function(LatLng)? onFindNearestZone;
+  final Function()? onColorByFreePlacesMode;
 
   const MapControlsWidget({
     super.key,
     required this.mapController,
     this.onFindNearestZone,
+    this.onColorByFreePlacesMode,
   });
 
   @override
@@ -192,6 +194,15 @@ class _MapControlsWidgetState extends State<MapControlsWidget> {
             icon: Icons.local_parking,
             onPressed: () => _isLoading ? null : _findNearestZone(),
             isLoading: _isLoading,
+          ),
+          const SizedBox(width: 12),
+          _buildControlButton(
+            icon: Icons.palette,
+            onPressed: () {
+              if (!_isLoading && widget.onColorByFreePlacesMode != null) {
+                widget.onColorByFreePlacesMode!();
+              }
+            },
           ),
         ],
       ),
