@@ -230,7 +230,19 @@ class _InspectZonePageState extends State<InspectZonePage>
 
   @override
   void onBookingCreated(BookingDetailed booking) {
-    _showMessage('Бронирование успешно создано', isError: false);
+    if (_startTime != null && _endTime != null) {
+      final duration = _endTime!.difference(_startTime!);
+      final minutes = duration.inMinutes;
+      final totalPrice = (minutes * widget.zone.pricePerMinute).ceil();
+
+      _showPaymentDialog(totalPrice);
+    } else {
+      _showMessage('Бронирование успешно создано', isError: false);
+      _resetForm();
+    }
+  }
+
+  void _resetForm() {
     setState(() {
       _selectedCar = null;
       _selectedPlace = null;
@@ -242,6 +254,59 @@ class _InspectZonePageState extends State<InspectZonePage>
         context.go('/');
       }
     });
+  }
+
+  Future<void> _showPaymentDialog(int totalPrice) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Оплата бронирования'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Итоговая стоимость: $totalPrice ₽',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Перейти к оплате?', style: TextStyle(fontSize: 16)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                  _showMessage('Оплата отменена');
+                },
+                child: const Text('Отмена'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF447BBA),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Перейти к оплате'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      _showMessage('Переход к оплате...', isError: false);
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        _showMessage('Оплата успешно выполнена', isError: false);
+      }
+    }
   }
 
   @override

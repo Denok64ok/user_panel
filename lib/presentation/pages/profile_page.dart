@@ -133,6 +133,66 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
     }
   }
 
+  @override
+  void onBookingFinished(int totalPrice) {
+    if (mounted) {
+      _showPaymentDialog(totalPrice);
+    }
+  }
+
+  Future<void> _showPaymentDialog(int totalPrice) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Оплата бронирования'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Итоговая стоимость: $totalPrice ₽',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Перейти к оплате?', style: TextStyle(fontSize: 16)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                  _showMessage('Оплата отменена');
+                },
+                child: const Text('Отмена'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF447BBA),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Перейти к оплате'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      _showMessage('Переход к оплате...', isError: false);
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        _showMessage('Оплата успешно выполнена', isError: false);
+      }
+    }
+  }
+
   Future<void> _handleLogout() async {
     final token = await _storage.read(key: 'access_token');
     if (token != null) {
@@ -586,7 +646,7 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
           (context) => AlertDialog(
             title: const Text('Подтверждение'),
             content: const Text(
-              'Вы действительно хотите завершить бронирование?',
+              'Вы действительно хотите завершить бронирование?\nПосле подтверждения вам будет выставлен счет.',
             ),
             actions: [
               TextButton(

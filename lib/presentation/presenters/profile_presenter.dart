@@ -20,6 +20,7 @@ abstract class ProfileView {
   void showUserCars(List<CarUser> cars);
   void showUserBookings(List<BookingDetailed> bookings);
   void onLogoutSuccess();
+  void onBookingFinished(int totalPrice);
 }
 
 class ProfilePresenter {
@@ -231,12 +232,13 @@ class ProfilePresenter {
   Future<void> finishBooking(int bookingId, String token) async {
     view.showLoading();
     try {
-      await finishBookingUseCase.execute(bookingId, token);
+      final response = await finishBookingUseCase.execute(bookingId, token);
       final userId = await _secureStorage.read(key: 'user_id');
       if (userId != null) {
         await loadUserBookings(int.parse(userId), token);
       }
       view.hideLoading();
+      view.onBookingFinished(response.totalPrice);
     } catch (e) {
       view.hideLoading();
       if (e is DioException) {

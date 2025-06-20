@@ -12,6 +12,7 @@ import '../models/parking_place.dart';
 import '../models/booking_create.dart';
 import '../models/car.dart';
 import '../models/car_user_create.dart';
+import '../models/booking_finish_response.dart';
 
 part 'api_service.g.dart';
 
@@ -74,7 +75,7 @@ abstract class ApiService {
   );
 
   @POST('/booking/{bookingId}/finish')
-  Future<BookingDetailed> finishBooking(
+  Future<BookingFinishResponse> finishBooking(
     @Path('bookingId') int bookingId,
     @Header('Authorization') String token,
   );
