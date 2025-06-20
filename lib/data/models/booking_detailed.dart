@@ -35,5 +35,6 @@ class BookingDetailed {
   Map<String, dynamic> toJson() => _$BookingDetailedToJson(this);
 
   DateTime get startDateTime => DateTime.parse(startTime);
-  DateTime? get endDateTime => endTime != null ? DateTime.parse(endTime!) : null;
+  DateTime? get endDateTime =>
+      endTime != null ? DateTime.parse(endTime!) : null;
 }
