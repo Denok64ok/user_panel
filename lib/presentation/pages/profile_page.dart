@@ -13,6 +13,7 @@ import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/delete_user_car_usecase.dart';
 import '../../domain/usecases/create_car_usecase.dart';
 import '../../domain/usecases/create_car_user_usecase.dart';
+import '../../domain/usecases/finish_booking_usecase.dart';
 import '../presenters/profile_presenter.dart';
 import '../widgets/header.dart';
 
@@ -43,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
       getIt<LogoutUseCase>(),
       getIt<CreateCarUseCase>(),
       getIt<CreateCarUserUseCase>(),
+      getIt<FinishBookingUseCase>(),
       this,
     );
     _loadProfile();
@@ -283,6 +285,17 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
                                 ],
                               ),
                             ),
+                            if (booking.endDateTime == null)
+                              IconButton(
+                                onPressed:
+                                    () => _handleFinishBooking(booking.id),
+                                icon: const Icon(
+                                  Icons.check_circle_outline,
+                                  color: Color(0xFF447BBA),
+                                  size: 28,
+                                ),
+                                tooltip: 'Завершить бронирование',
+                              ),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -303,7 +316,9 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   Text(
-                                    'До ${_formatDateTime(booking.endDateTime)}',
+                                    booking.endDateTime != null
+                                        ? 'До ${_formatDateTime(booking.endDateTime!)}'
+                                        : 'Без времени окончания',
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
@@ -562,6 +577,37 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
             ],
           ),
     );
+  }
+
+  Future<void> _handleFinishBooking(int bookingId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Подтверждение'),
+            content: const Text(
+              'Вы действительно хотите завершить бронирование?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Отмена'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Завершить'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      final token = await _storage.read(key: 'access_token');
+      if (token != null) {
+        _presenter.finishBooking(bookingId, token);
+      }
+    }
   }
 
   @override

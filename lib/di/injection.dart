@@ -15,6 +15,7 @@ import '../domain/usecases/get_user_bookings_usecase.dart';
 import '../domain/usecases/delete_user_car_usecase.dart';
 import '../domain/usecases/create_car_usecase.dart';
 import '../domain/usecases/create_car_user_usecase.dart';
+import '../domain/usecases/finish_booking_usecase.dart';
 import '../presentation/presenters/map_presenter.dart';
 import '../presentation/presenters/inspect_zone_presenter.dart';
 
@@ -73,6 +74,7 @@ void setupDi() {
   );
   getIt.registerLazySingleton(() => CreateCarUseCase(getIt()));
   getIt.registerLazySingleton(() => CreateCarUserUseCase(getIt()));
+  getIt.registerLazySingleton(() => FinishBookingUseCase(getIt<ApiService>()));
 
   // Presenters
   getIt.registerFactory<MapPresenter>(

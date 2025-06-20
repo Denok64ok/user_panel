@@ -13,7 +13,7 @@ BookingDetailed _$BookingDetailedFromJson(Map<String, dynamic> json) =>
       zoneName: json['zone_name'] as String?,
       placeNumber: (json['place_number'] as num?)?.toInt(),
       startTime: json['start_time'] as String,
-      endTime: json['end_time'] as String,
+      endTime: json['end_time'] as String?,
       carNumber: json['car_number'] as String?,
       bookingStatusName: json['booking_status_name'] as String?,
     );

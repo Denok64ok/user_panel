@@ -13,7 +13,7 @@ class BookingDetailed {
   @JsonKey(name: 'start_time')
   final String startTime;
   @JsonKey(name: 'end_time')
-  final String endTime;
+  final String? endTime;
   @JsonKey(name: 'car_number')
   final String? carNumber;
   @JsonKey(name: 'booking_status_name')
@@ -25,7 +25,7 @@ class BookingDetailed {
     this.zoneName,
     this.placeNumber,
     required this.startTime,
-    required this.endTime,
+    this.endTime,
     this.carNumber,
     this.bookingStatusName,
   });
@@ -35,5 +35,5 @@ class BookingDetailed {
   Map<String, dynamic> toJson() => _$BookingDetailedToJson(this);
 
   DateTime get startDateTime => DateTime.parse(startTime);
-  DateTime get endDateTime => DateTime.parse(endTime);
+  DateTime? get endDateTime => endTime != null ? DateTime.parse(endTime!) : null;
 }

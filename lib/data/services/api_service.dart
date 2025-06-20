@@ -73,6 +73,12 @@ abstract class ApiService {
     @Header('Authorization') String token,
   );
 
+  @POST('/booking/{bookingId}/finish')
+  Future<BookingDetailed> finishBooking(
+    @Path('bookingId') int bookingId,
+    @Header('Authorization') String token,
+  );
+
   @DELETE('/car-user/{id}')
   Future<void> deleteUserCar(
     @Path('id') int id,

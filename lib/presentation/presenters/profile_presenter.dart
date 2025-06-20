@@ -8,6 +8,7 @@ import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/delete_user_car_usecase.dart';
 import '../../domain/usecases/create_car_usecase.dart';
 import '../../domain/usecases/create_car_user_usecase.dart';
+import '../../domain/usecases/finish_booking_usecase.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 
@@ -29,6 +30,7 @@ class ProfilePresenter {
   final LogoutUseCase logoutUseCase;
   final CreateCarUseCase createCarUseCase;
   final CreateCarUserUseCase createCarUserUseCase;
+  final FinishBookingUseCase finishBookingUseCase;
   final ProfileView view;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -40,6 +42,7 @@ class ProfilePresenter {
     this.logoutUseCase,
     this.createCarUseCase,
     this.createCarUserUseCase,
+    this.finishBookingUseCase,
     this.view,
   );
 
@@ -221,6 +224,36 @@ class ProfilePresenter {
         }
       } else {
         view.showError('Не удалось добавить автомобиль. Попробуйте позже');
+      }
+    }
+  }
+
+  Future<void> finishBooking(int bookingId, String token) async {
+    view.showLoading();
+    try {
+      await finishBookingUseCase.execute(bookingId, token);
+      final userId = await _secureStorage.read(key: 'user_id');
+      if (userId != null) {
+        await loadUserBookings(int.parse(userId), token);
+      }
+      view.hideLoading();
+    } catch (e) {
+      view.hideLoading();
+      if (e is DioException) {
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          view.showError(
+            'Не удалось подключиться к серверу. Проверьте подключение к интернету',
+          );
+        } else if (e.response?.statusCode == 401) {
+          view.showError('Необходима повторная авторизация');
+        } else if (e.response?.statusCode == 404) {
+          view.showError('Бронирование не найдено');
+        } else {
+          view.showError('Не удалось завершить бронирование. Попробуйте позже');
+        }
+      } else {
+        view.showError('Не удалось завершить бронирование. Попробуйте позже');
       }
     }
   }
