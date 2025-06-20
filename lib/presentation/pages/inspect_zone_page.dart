@@ -13,6 +13,7 @@ import '../../data/models/booking_detailed.dart';
 import '../../data/models/user.dart';
 import '../../domain/usecases/get_user_profile_usecase.dart';
 import '../presenters/inspect_zone_presenter.dart';
+import 'package:go_router/go_router.dart';
 
 class InspectZonePage extends StatefulWidget {
   final ParkingZoneDetailed zone;
@@ -109,12 +110,18 @@ class _InspectZonePageState extends State<InspectZonePage>
 
     // Если оба времени не выбраны, бронирование без времени окончания
     if (_startTime == null && _endTime == null) {
+      _showMessage('Бронирование успешно создано', isError: false);
       _presenter.createBookingWithoutEnd(
         carUserId: _selectedCar!.id,
         parkingPlaceId: _selectedPlace!.id,
         bookingStatusId: 1,
         token: 'Bearer $token',
       );
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          context.go('/');
+        }
+      });
       return;
     }
 
@@ -169,19 +176,34 @@ class _InspectZonePageState extends State<InspectZonePage>
 
   @override
   void showError(String message) {
-    if (message.toLowerCase().contains('already booked') ||
-        message.toLowerCase().contains('место занято')) {
+    final msg = message.toLowerCase();
+    if (msg.contains('already booked') || msg.contains('место занято')) {
       _showMessage('Это место уже забронировано');
-    } else if (message.toLowerCase().contains('network') ||
-        message.toLowerCase().contains('connection')) {
+    } else if (msg.contains('network') || msg.contains('connection')) {
       _showMessage('Проверьте подключение к интернету');
-    } else if (message.toLowerCase().contains('unauthorized')) {
+    } else if (msg.contains('unauthorized') ||
+        msg.contains('необходимо авторизоваться')) {
       _showMessage('Необходимо авторизоваться');
-    } else if (message.toLowerCase().contains('invalid time') ||
-        message.toLowerCase().contains('invalid date')) {
+    } else if (msg.contains('invalid time') || msg.contains('invalid date')) {
       _showMessage('Неверно указано время бронирования');
-    } else if (message.toLowerCase().contains('place not found')) {
+    } else if (msg.contains('place not found')) {
       _showMessage('Выбранное место больше недоступно');
+    } else if (msg.contains('place not available')) {
+      _showMessage('Выбранное место недоступно для бронирования');
+    } else if (msg.contains('not found')) {
+      _showMessage('Данные не найдены');
+    } else if (msg.contains('заполните все поля')) {
+      _showMessage('Пожалуйста, заполните все поля');
+    } else if (msg.contains('выберите дату и время')) {
+      _showMessage('Пожалуйста, выберите дату и время начала и окончания');
+    } else if (msg.contains('время окончания должно быть позже')) {
+      _showMessage('Время окончания должно быть позже времени начала');
+    } else if (msg.contains('не удалось загрузить данные')) {
+      _showMessage('Не удалось загрузить данные пользователя');
+    } else if (msg.contains('не удалось') || msg.contains('ошибка')) {
+      _showMessage(message);
+    } else {
+      _showMessage('Произошла ошибка. Попробуйте позже');
     }
   }
 
@@ -214,6 +236,11 @@ class _InspectZonePageState extends State<InspectZonePage>
       _selectedPlace = null;
       _startTime = null;
       _endTime = null;
+    });
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        context.go('/');
+      }
     });
   }
 
