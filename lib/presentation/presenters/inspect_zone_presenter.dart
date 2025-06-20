@@ -133,4 +133,49 @@ class InspectZonePresenter {
       }
     }
   }
+
+  Future<void> createBookingWithoutEnd({
+    required int carUserId,
+    required int parkingPlaceId,
+    required int bookingStatusId,
+    required String token,
+  }) async {
+    try {
+      _view.showLoading();
+      final bookingData = {
+        'car_user_id': carUserId,
+        'parking_place_id': parkingPlaceId,
+        'booking_status_id': bookingStatusId,
+      };
+      final createdBooking = await _apiService.createBookingWithoutEnd(
+        bookingData,
+        token,
+      );
+      _view.hideLoading();
+      _view.onBookingCreated(createdBooking);
+    } catch (e) {
+      _view.hideLoading();
+      if (e is DioException) {
+        final responseData = e.response?.data?.toString() ?? '';
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          _view.showError(
+            'Не удалось подключиться к серверу. Проверьте подключение к интернету',
+          );
+        } else if (e.response?.statusCode == 401) {
+          _view.showError('Необходима повторная авторизация');
+        } else if (responseData.contains('already booked')) {
+          _view.showError('Это место уже забронировано');
+        } else if (responseData.contains('invalid time')) {
+          _view.showError('Выбрано некорректное время бронирования');
+        } else if (responseData.contains('place not available')) {
+          _view.showError('Выбранное место недоступно для бронирования');
+        } else {
+          _view.showError('Не удалось создать бронирование. Попробуйте позже');
+        }
+      } else {
+        _view.showError('Не удалось создать бронирование. Попробуйте позже');
+      }
+    }
+  }
 }

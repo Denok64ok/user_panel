@@ -13,4 +13,7 @@ CarUserCreate _$CarUserCreateFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$CarUserCreateToJson(CarUserCreate instance) =>
-    <String, dynamic>{'user_id': instance.userId, 'car_id': instance.carId};
+    <String, dynamic>{
+      'user_id': instance.userId,
+      'car_id': instance.carId,
+    };

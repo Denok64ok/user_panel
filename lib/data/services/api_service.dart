@@ -67,6 +67,12 @@ abstract class ApiService {
     @Header('Authorization') String token,
   );
 
+  @POST('/booking/no-end-time')
+  Future<BookingDetailed> createBookingWithoutEnd(
+    @Body() Map<String, dynamic> booking,
+    @Header('Authorization') String token,
+  );
+
   @DELETE('/car-user/{id}')
   Future<void> deleteUserCar(
     @Path('id') int id,

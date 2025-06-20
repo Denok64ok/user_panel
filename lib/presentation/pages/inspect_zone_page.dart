@@ -96,22 +96,36 @@ class _InspectZonePageState extends State<InspectZonePage>
   }
 
   Future<void> _createBooking() async {
-    if (_selectedCar == null ||
-        _selectedPlace == null ||
-        _startTime == null ||
-        _endTime == null) {
+    if (_selectedCar == null || _selectedPlace == null) {
       showError('Пожалуйста, заполните все поля');
-      return;
-    }
-
-    if (_endTime!.isBefore(_startTime!)) {
-      showError('Время окончания должно быть позже времени начала');
       return;
     }
 
     final token = await _storage.read(key: 'access_token');
     if (token == null) {
       showError('Необходимо авторизоваться');
+      return;
+    }
+
+    // Если оба времени не выбраны, бронирование без времени окончания
+    if (_startTime == null && _endTime == null) {
+      _presenter.createBookingWithoutEnd(
+        carUserId: _selectedCar!.id,
+        parkingPlaceId: _selectedPlace!.id,
+        bookingStatusId: 1,
+        token: 'Bearer $token',
+      );
+      return;
+    }
+
+    // Если только одно из времён не выбрано, ошибка
+    if (_startTime == null || _endTime == null) {
+      showError('Пожалуйста, выберите дату и время начала и окончания');
+      return;
+    }
+
+    if (_endTime!.isBefore(_startTime!)) {
+      showError('Время окончания должно быть позже времени начала');
       return;
     }
 
