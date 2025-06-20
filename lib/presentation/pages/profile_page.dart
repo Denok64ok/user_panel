@@ -122,7 +122,22 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
 
   @override
   void showUserBookings(List<BookingDetailed> bookings) {
-    setState(() => _userBookings = bookings);
+    setState(() {
+      _userBookings =
+          bookings..sort((a, b) {
+            // Сначала сортируем по статусу (активные первыми)
+            if ((a.bookingStatusName ?? '') == 'Активно' &&
+                (b.bookingStatusName ?? '') != 'Активно') {
+              return -1;
+            }
+            if ((a.bookingStatusName ?? '') != 'Активно' &&
+                (b.bookingStatusName ?? '') == 'Активно') {
+              return 1;
+            }
+            // Затем сортируем по времени начала (новые первыми)
+            return b.startDateTime.compareTo(a.startDateTime);
+          });
+    });
   }
 
   @override
@@ -227,6 +242,7 @@ class _ProfilePageState extends State<ProfilePage> implements ProfileView {
       final token = await _storage.read(key: 'access_token');
       if (token != null) {
         _presenter.deleteUserCar(car.id, token);
+        _presenter.loadProfile(token);
       }
     }
   }
